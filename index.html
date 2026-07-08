@@ -25,9 +25,9 @@
         const TELEGRAM_LINK = 'https://t.me/TALHA_SCRIPTS';
         const STORAGE_KEY = 'apple_ai_user_id';
 
-        // Authorized Domains List
+        // --- AUTHORIZED DOMAINS LIST ---
         const authorizedDomains = [
-            "ahmad-site-data.vercel.app", // Cleaned URL for correct mapping
+            "apple-ai-bot.vercel.app",
             "quotex.io",
             "quotex.market",
             "qtxbrk.com",
@@ -41,14 +41,7 @@
             "brokerqx.pro"
         ];
 
-        // --- 2. DOMAIN VERIFICATION ---
-        function isDomainAuthorized() {
-            const currentHost = window.location.hostname;
-            // Check if current domain matches or ends with any authorized domain
-            return authorizedDomains.some(domain => currentHost === domain || currentHost.endsWith('.' + domain));
-        }
-
-        // --- 3. UNIQUE ID GENERATOR & STORAGE ---
+        // --- 2. UNIQUE ID GENERATOR & STORAGE ---
         function getOrCreateUserID() {
             let existingId = localStorage.getItem(STORAGE_KEY);
             if (!existingId) {
@@ -63,7 +56,17 @@
 
         const userId = getOrCreateUserID();
 
-        // --- 4. INJECT STYLES (Neon Red & Lock Screen UI) ---
+        // --- DOMAIN VERIFICATION CHECK ---
+        function isDomainAuthorized() {
+            const currentHost = window.location.hostname.toLowerCase();
+            return authorizedDomains.some(domain => {
+                // Remove protocol helper if passed accidentally in list
+                const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0].toLowerCase();
+                return currentHost === cleanDomain || currentHost.endsWith('.' + cleanDomain);
+            });
+        }
+
+        // --- 3. INJECT STYLES (Neon Red & Lock Screen UI) ---
         const style = document.createElement('style');
         style.innerHTML = `
             @keyframes proScan {
@@ -130,7 +133,7 @@
                 color: #ff3333;
                 margin: 20px 0;
                 letter-spacing: 1px;
-                user-select: none; /* Block selecting text */
+                user-select: all;
             }
             .lock-btn {
                 display: inline-block;
@@ -151,24 +154,24 @@
         `;
         document.head.appendChild(style);
 
-        // --- 5. CREATE LOCK SCREEN ELEMENT ---
+        // --- 4. CREATE LOCK SCREEN ELEMENT ---
         function showLockScreen(isDomainError = false) {
             const lockScreen = document.createElement('div');
             lockScreen.id = 'apple-lock-screen';
             
-            // If domain is unauthorized, trigger full system/start error and hide ID
             if (isDomainError) {
+                // Domain restricted error UI (ID copy block hidden)
                 lockScreen.innerHTML = `
                     <div class="lock-card">
                         <div class="lock-title">SYSTEM ERROR</div>
-                        <p style="font-size: 16px; color: #ff0000; font-weight: bold;">CRITICAL ERROR: Unauthorized Domain Activation Detected!</p>
-                        <p style="font-size: 14px; color: #ff3333; margin: 15px 0;">This script is locked and cannot be executed on this platform. Hardware ID extraction is blocked.</p>
-                        <p style="margin: 15px 0; font-size: 15px;">Contact Owner on Telegram:</p>
+                        <p style="font-size: 16px; color: #ff0000; font-weight: bold;">UNAUTHORIZED DOMAIN DETECTED!</p>
+                        <p style="font-size: 14px; color: #b3b3b3;">Yeh script is website par chalne ke liye authorized nahi hai. Kripya sahi platform ka istemal karein.</p>
+                        <p style="margin: 15px 0; font-size: 15px;">Contact Admin on Telegram:</p>
                         <a href="${TELEGRAM_LINK}" target="_blank" class="lock-btn">Contact ${TELEGRAM_USER}</a>
                     </div>
                 `;
             } else {
-                // Standard license activation screen
+                // Regular Firebase licensing lock screen
                 lockScreen.innerHTML = `
                     <div class="lock-card">
                         <div class="lock-title">SYSTEM LOCKED</div>
@@ -183,21 +186,21 @@
             document.body.appendChild(lockScreen);
         }
 
-        // --- 6. LICENSE VERIFICATION INITIALIZATION ---
+        // --- 5. LICENSE VERIFICATION INITIALIZATION ---
         async function verifyLicense() {
-            // First check if the script runs on authorized domain
+            // First Level Security: Domain Check
             if (!isDomainAuthorized()) {
-                showLockScreen(true); // Full system block error triggered
+                showLockScreen(true); // Locks system completely & hides ID
                 return;
             }
 
+            // Second Level Security: Firebase ID Check
             try {
                 const response = await fetch(FIREBASE_URL);
                 if (!response.ok) throw new Error('Database connection failed');
                 
                 const data = await response.json();
                 let isAuthorized = false;
-                
                 if (data) {
                     isAuthorized = Object.values(data).includes(userId) || data.hasOwnProperty(userId) || Object.values(data).some(u => typeof u === 'object' && u !== null && Object.values(u).includes(userId));
                 }
@@ -209,11 +212,11 @@
                 }
             } catch (error) {
                 console.error("Verification error: ", error);
-                showLockScreen(false);
+                showLockScreen(false); // Fail secure
             }
         }
 
-        // --- 7. CORE APP INITIALIZATION (Runs only if unlocked) ---
+        // --- 6. CORE APP INITIALIZATION (Runs only if unlocked) ---
         function initApp() {
             const scanner = document.createElement('div');
             scanner.className = 'apple-pro-scanner';
@@ -352,7 +355,7 @@
             };
         }
 
-        // --- 8. EXECUTION START ---
+        // --- 7. EXECUTION START ---
         verifyLicense();
 
     })();
