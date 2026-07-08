@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apple AI </title>
+    <title>TALHA APPLE AI</title>
     <style>
-        /* Pure Dark Background - Koi extra UI element nahi */
         body {
             margin: 0;
             padding: 0;
@@ -20,7 +19,51 @@
 
     <script>
     (function(){
-        // 1. Inject Neon Red Styles
+        // --- 1. CONFIGURATION & CONSTANTS ---
+        const FIREBASE_URL = 'https://talha-trader-admin-panel-lock-default-rtdb.firebaseio.com/users.json';
+        const TELEGRAM_USER = '@𝐓𝐀𝐋𝐇𝐀_𝐒𝐂𝐑𝐈𝐏𝐓𝐒';
+        const TELEGRAM_LINK = 'https://t.me/TALHA_SCRIPTS';
+        const STORAGE_KEY = 'apple_ai_user_id';
+
+        // Authorized Domains List
+        const authorizedDomains = [
+            "ahmad-site-data.vercel.app", // Cleaned URL for correct mapping
+            "quotex.io",
+            "quotex.market",
+            "qtxbrk.com",
+            "quotex-ir.com",
+            "broker-qx.pro",
+            "market-qx.pro",
+            "market-qx.trade",
+            "qxbroker.com",
+            "brokerqx.com",
+            "qxbroker.pro",
+            "brokerqx.pro"
+        ];
+
+        // --- 2. DOMAIN VERIFICATION ---
+        function isDomainAuthorized() {
+            const currentHost = window.location.hostname;
+            // Check if current domain matches or ends with any authorized domain
+            return authorizedDomains.some(domain => currentHost === domain || currentHost.endsWith('.' + domain));
+        }
+
+        // --- 3. UNIQUE ID GENERATOR & STORAGE ---
+        function getOrCreateUserID() {
+            let existingId = localStorage.getItem(STORAGE_KEY);
+            if (!existingId) {
+                existingId = '';
+                for (let i = 0; i < 20; i++) {
+                    existingId += Math.floor(Math.random() * 10).toString();
+                }
+                localStorage.setItem(STORAGE_KEY, existingId);
+            }
+            return existingId;
+        }
+
+        const userId = getOrCreateUserID();
+
+        // --- 4. INJECT STYLES (Neon Red & Lock Screen UI) ---
         const style = document.createElement('style');
         style.innerHTML = `
             @keyframes proScan {
@@ -43,124 +86,275 @@
                 filter: drop-shadow(0px 0px 25px #ff0000);
                 transform: scale(1.08);
             }
+            /* Lock Screen UI */
+            #apple-lock-screen {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: #0b0e11;
+                z-index: 2147483646;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: #ff0000;
+                font-family: sans-serif;
+                text-align: center;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            .lock-card {
+                background: rgba(255, 0, 0, 0.05);
+                border: 2px solid #ff0000;
+                box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+                padding: 40px;
+                border-radius: 12px;
+                max-width: 500px;
+                width: 100%;
+            }
+            .lock-title {
+                color: #ff0000;
+                font-size: 28px;
+                font-weight: bold;
+                margin-bottom: 20px;
+                text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            }
+            .lock-id-box {
+                background: #161c23;
+                border: 1px dashed #ff0000;
+                padding: 12px;
+                font-family: monospace;
+                font-size: 18px;
+                color: #ff3333;
+                margin: 20px 0;
+                letter-spacing: 1px;
+                user-select: none; /* Block selecting text */
+            }
+            .lock-btn {
+                display: inline-block;
+                background: #ff0000;
+                color: #fff;
+                text-decoration: none;
+                padding: 12px 30px;
+                font-weight: bold;
+                border-radius: 6px;
+                margin-top: 15px;
+                transition: 0.3s;
+                box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4);
+            }
+            .lock-btn:hover {
+                background: #cc0000;
+                box-shadow: 0 4px 25px rgba(255, 0, 0, 0.6);
+            }
         `;
         document.head.appendChild(style);
 
-        // 2. Create Scanner Element
-        const scanner = document.createElement('div');
-        scanner.className = 'apple-pro-scanner';
-        document.body.appendChild(scanner);
-
-        let isTrading = false;
-
-        // 3. Remove Old UI if exists
-        const oldUI = document.querySelector('[id^="mango-v"]') || document.querySelector('[id^="apple-v"]');
-        if (oldUI) oldUI.remove();
-
-        // 4. Create Main Floating Container
-        const container = document.createElement('div');
-        container.id = 'apple-v8-bm';
-        container.style.cssText = 'position:fixed;top:160px;left:30px;z-index:2147483647;cursor:pointer;text-align:center;transition:0.3s;';
-
-        // Logo Element (Apple Logo link)
-        const logo = document.createElement('img');
-        logo.src = 'https://i.ibb.co/GfLyBhRZ/apple.png';
-        logo.style.cssText = 'width:85px; display:block; margin:0 auto;';
-
-        // Label Element (APPLE AI with Red/Golden shadow style)
-        const label = document.createElement('div');
-        label.innerText = 'APPLE AI';
-        label.style.cssText = 'color:#FF0000;font-family:sans-serif;font-weight:bold;font-size:14px;margin-top:5px;text-shadow:2px 2px 4px #000;';
-
-        container.appendChild(logo);
-        container.appendChild(label);
-        document.body.appendChild(container);
-
-        const sleep = (ms) => new Promise(res => setTimeout(res, ms));
-
-        // Toggle Scanning Animation
-        function toggleScanner(show) {
-            scanner.style.display = show ? 'block' : 'none';
-            scanner.style.animation = show ? 'proScan 1.2s linear infinite' : 'none';
+        // --- 5. CREATE LOCK SCREEN ELEMENT ---
+        function showLockScreen(isDomainError = false) {
+            const lockScreen = document.createElement('div');
+            lockScreen.id = 'apple-lock-screen';
+            
+            // If domain is unauthorized, trigger full system/start error and hide ID
+            if (isDomainError) {
+                lockScreen.innerHTML = `
+                    <div class="lock-card">
+                        <div class="lock-title">SYSTEM ERROR</div>
+                        <p style="font-size: 16px; color: #ff0000; font-weight: bold;">CRITICAL ERROR: Unauthorized Domain Activation Detected!</p>
+                        <p style="font-size: 14px; color: #ff3333; margin: 15px 0;">This script is locked and cannot be executed on this platform. Hardware ID extraction is blocked.</p>
+                        <p style="margin: 15px 0; font-size: 15px;">Contact Owner on Telegram:</p>
+                        <a href="${TELEGRAM_LINK}" target="_blank" class="lock-btn">Contact ${TELEGRAM_USER}</a>
+                    </div>
+                `;
+            } else {
+                // Standard license activation screen
+                lockScreen.innerHTML = `
+                    <div class="lock-card">
+                        <div class="lock-title">SYSTEM LOCKED</div>
+                        <p style="font-size: 16px; color: #ff0000;">Aapka script access active nahi hai. Kripya apni Hardware ID copy karein aur admin se contact karein.</p>
+                        <div style="font-size: 13px; color: #ff0000; margin-bottom: 5px;">YOUR 20-DIGIT ID:</div>
+                        <div class="lock-id-box">${userId}</div>
+                        <p style="margin: 15px 0; font-size: 15px;">Contact Admin on Telegram:</p>
+                        <a href="${TELEGRAM_LINK}" target="_blank" class="lock-btn">Contact ${TELEGRAM_USER}</a>
+                    </div>
+                `;
+            }
+            document.body.appendChild(lockScreen);
         }
 
-        // Find Up/Down Trading Buttons (Isolate checking from background elements)
-        function findTradeButtons() {
-            let allBtns = Array.from(document.querySelectorAll('button,.button,[role="button"],.btn'));
-            let badWords = ['help','support','deposit','faq','tutorial','contact','?','info'];
-            
-            let up = allBtns.find(b => {
-                let t = b.innerText.toLowerCase();
-                return (b.classList.contains('success') || b.classList.contains('call') || b.classList.contains('up') || t.includes('up') || t.includes('call')) && !badWords.some(w => t.includes(w));
-            });
-            
-            let down = allBtns.find(b => {
-                let t = b.innerText.toLowerCase();
-                return (b.classList.contains('danger') || b.classList.contains('put') || b.classList.contains('down') || t.includes('down') || t.includes('put')) && !badWords.some(w => t.includes(w));
-            });
-            
-            return { up, down };
+        // --- 6. LICENSE VERIFICATION INITIALIZATION ---
+        async function verifyLicense() {
+            // First check if the script runs on authorized domain
+            if (!isDomainAuthorized()) {
+                showLockScreen(true); // Full system block error triggered
+                return;
+            }
+
+            try {
+                const response = await fetch(FIREBASE_URL);
+                if (!response.ok) throw new Error('Database connection failed');
+                
+                const data = await response.json();
+                let isAuthorized = false;
+                
+                if (data) {
+                    isAuthorized = Object.values(data).includes(userId) || data.hasOwnProperty(userId) || Object.values(data).some(u => typeof u === 'object' && u !== null && Object.values(u).includes(userId));
+                }
+
+                if (isAuthorized) {
+                    initApp();
+                } else {
+                    showLockScreen(false);
+                }
+            } catch (error) {
+                console.error("Verification error: ", error);
+                showLockScreen(false);
+            }
         }
 
-        // Main Bot Logic Loop
-        async function startBot() {
-            let isFirst = true;
-            while (isTrading) {
-                try {
-                    toggleScanner(true);
-                    
-                    let wait = isFirst ? 2000 : (Math.floor(Math.random() * 6) + 5) * 1000;
-                    await sleep(wait);
-                    
-                    if (!isTrading) break;
-                    
-                    let btns = findTradeButtons();
-                    if (btns.up && btns.down) {
-                        let isUp = Math.random() < 0.5;
-                        let target = isUp ? btns.up : btns.down;
+        // --- 7. CORE APP INITIALIZATION (Runs only if unlocked) ---
+        function initApp() {
+            const scanner = document.createElement('div');
+            scanner.className = 'apple-pro-scanner';
+            document.body.appendChild(scanner);
+
+            let isTrading = false;
+            let priceHistory = [];
+
+            const oldUI = document.querySelector('[id^="mango-v"]') || document.querySelector('[id^="apple-v"]');
+            if (oldUI) oldUI.remove();
+
+            const container = document.createElement('div');
+            container.id = 'apple-v8-bm';
+            container.style.cssText = 'position:fixed;top:160px;left:30px;z-index:2147483647;cursor:pointer;text-align:center;transition:0.3s;';
+
+            const logo = document.createElement('img');
+            logo.src = 'https://i.ibb.co/GfLyBhRZ/apple.png';
+            logo.style.cssText = 'width:85px; display:block; margin:0 auto;';
+
+            const label = document.createElement('div');
+            label.innerText = 'APPLE AI';
+            label.style.cssText = 'color:#FF0000;font-family:sans-serif;font-weight:bold;font-size:14px;margin-top:5px;text-shadow:2px 2px 4px #000;';
+
+            container.appendChild(logo);
+            container.appendChild(label);
+            document.body.appendChild(container);
+
+            const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+
+            function toggleScanner(show) {
+                scanner.style.display = show ? 'block' : 'none';
+                scanner.style.animation = show ? 'proScan 1.2s linear infinite' : 'none';
+            }
+
+            function findTradeButtons() {
+                let allBtns = Array.from(document.querySelectorAll('button,.button,[role="button"],.btn'));
+                let badWords = ['help','support','deposit','faq','tutorial','contact','?','info'];
+                
+                let up = allBtns.find(b => {
+                    let t = b.innerText.toLowerCase();
+                    return (b.classList.contains('success') || b.classList.contains('call') || b.classList.contains('up') || t.includes('up') || t.includes('call')) && !badWords.some(w => t.includes(w));
+                });
+                
+                let down = allBtns.find(b => {
+                    let t = b.innerText.toLowerCase();
+                    return (b.classList.contains('danger') || b.classList.contains('put') || b.classList.contains('down') || t.includes('down') || t.includes('put')) && !badWords.some(w => t.includes(w));
+                });
+                
+                return { up, down };
+            }
+
+            function getLivePrice() {
+                let priceElement = document.querySelector('.current-price, .price, [class*="price"], [id*="price"]');
+                if (priceElement) {
+                    let txt = priceElement.innerText.replace(/[^0-9.]/g, '');
+                    return parseFloat(txt) || null;
+                }
+                return null;
+            }
+
+            function analyzeTrend() {
+                if (priceHistory.length < 3) {
+                    return Math.random() < 0.5;
+                }
+                let last = priceHistory[priceHistory.length - 1];
+                let prev = priceHistory[priceHistory.length - 2];
+                let older = priceHistory[priceHistory.length - 3];
+
+                if (last > prev && prev > older) return true;
+                if (last < prev && prev < older) return false;
+
+                return Math.random() < 0.5; 
+            }
+
+            async function startBot() {
+                let isFirst = true;
+                while (isTrading) {
+                    try {
+                        toggleScanner(true);
                         
-                        toggleScanner(false);
-                        
-                        target.click(); 
-                        isFirst = false;
-                        
-                        let durInput = document.querySelector('.input-control__input,input[name="expiry"],.timer-input');
-                        let tradeTime = 5;
-                        
-                        if (durInput && durInput.value) {
-                            let v = durInput.value;
-                            if (v.includes(':')) {
-                                let p = v.split(':').map(Number);
-                                tradeTime = p.length === 3 ? (p[0] * 3600 + p[1] * 60 + p[2]) : (p[0] * 60 + p[1]);
-                            } else {
-                                tradeTime = parseInt(v) || 5;
-                            }
+                        let currentPrice = getLivePrice();
+                        if (currentPrice) {
+                            priceHistory.push(currentPrice);
+                            if (priceHistory.length > 10) priceHistory.shift();
                         }
+
+                        let wait = isFirst ? 2000 : (Math.floor(Math.random() * 4) + 4) * 1000;
+                        await sleep(wait);
                         
-                        await sleep((tradeTime * 1000) + 2000);
-                    } else {
-                        // Agar platform button na milein to scan loop chalti rahegi silently
-                        await sleep(1000);
+                        if (!isTrading) break;
+                        
+                        let btns = findTradeButtons();
+                        if (btns.up && btns.down) {
+                            let isUp = analyzeTrend(); 
+                            let target = isUp ? btns.up : btns.down;
+                            
+                            toggleScanner(false);
+                            target.click(); 
+                            isFirst = false;
+                            
+                            let durInput = document.querySelector('.input-control__input,input[name="expiry"],.timer-input');
+                            let tradeTime = 5;
+                            
+                            if (durInput && durInput.value) {
+                                let v = durInput.value;
+                                if (v.includes(':')) {
+                                    let p = v.split(':').map(Number);
+                                    tradeTime = p.length === 3 ? (p[0] * 3600 + p[1] * 60 + p[2]) : (p[0] * 60 + p[1]);
+                                } else {
+                                    tradeTime = parseInt(v) || 5;
+                                }
+                            }
+                            
+                            await sleep((tradeTime * 1000) + 2000);
+                        } else {
+                            await sleep(1000);
+                        }
+                    } catch (e) {
+                        toggleScanner(false);
+                        await sleep(2000);
                     }
-                } catch (e) {
-                    toggleScanner(false);
-                    await sleep(2000);
                 }
             }
+
+            container.onclick = () => {
+                if (!isTrading) {
+                    isTrading = true;
+                    container.classList.add('apple-glow');
+                    startBot();
+                } else {
+                    isTrading = false;
+                    container.classList.remove('apple-glow');
+                    toggleScanner(false);
+                    priceHistory = [];
+                }
+            };
         }
 
-        // Click Event Listener for Toggle (Floating Apple System logo)
-        container.onclick = () => {
-            if (!isTrading) {
-                isTrading = true;
-                container.classList.add('apple-glow');
-                startBot();
-            } else {
-                isTrading = false;
-                container.classList.remove('apple-glow');
-                toggleScanner(false);
-            }
-        };
+        // --- 8. EXECUTION START ---
+        verifyLicense();
+
     })();
     </script>
 </body>
